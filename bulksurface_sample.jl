@@ -38,9 +38,7 @@
  # bottom boundary of the soil simulation grid
  zbsoil = [0., .1, .3, .5, .7, .9, 1.1] .+ dmoss # do not change by site
 
- dataindir = "C:\\Users\\Ikawa\\Googledrive\\Rproject\\USPrr\\snowin_usprr"
- file = filter(x -> (startswith(x,"snowinall") & endswith(x, ".csv")), readdir(dataindir))
- fidin = joinpath(dataindir, file[Int64(targetyear-2010)])
+ fidin = "bulksurface2013.csv"
  data=CSV.File(fidin,header=1,skipto=2,delim=",",missingstring="NA") |> DataFrame
 
 ustar = data."ustar"
