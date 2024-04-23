@@ -38,7 +38,7 @@
  # bottom boundary of the soil simulation grid
  zbsoil = [0., .1, .3, .5, .7, .9, 1.1] .+ dmoss # do not change by site
 
- fidin = "bulksurface2013.csv"
+ fidin = "usprr2013.csv"
  data=CSV.File(fidin,header=1,skipto=2,delim=",",missingstring="NA") |> DataFrame
 
 ustar = data."ustar"
