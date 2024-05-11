@@ -1,7 +1,6 @@
 # Bulksurface snowmelt model Ikawa et al (2024, WRR)
 # Hiroki Ikawa (4/23/2024) 
 
-using Interpolations
 using Interpolations, GLM # used for initial soil temp profile
 
 function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float64}, 
@@ -38,28 +37,22 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
 
   amax = 0.70
   amin = 0.30
-  gamma_albedo = 5.19 # 0.837
-
-  #if site=="uaf"
-  #amax = 0.61
-  #amin = 0.15
-  #gamma_albedo = 4.6 # 0.837
-  #end
+  gamma_albedo = 5.19
 
     # OUTPUT 
     eflux = zeros(Float64, ldata)
     leflux = zeros(Float64, ldata)
     hflux = zeros(Float64, ldata)
     teco = zeros(Float64, ldata)
-    tgtotal = zeros(Float64, ldata, nlayer)
+    tg_total = zeros(Float64, ldata, nlayer)
     gflux = zeros(Float64, ldata)
     ustar = zeros(Float64, ldata)
     gflux0 = zeros(Float64, ldata)
     Mf = zeros(Float64, ldata) 
-    swetotal = zeros(Float64, ldata)
-    dstotal = zeros(Float64, ldata)
+    swe_total = zeros(Float64, ldata)
+    dsnow_total = zeros(Float64, ldata)
     albedo = zeros(Float64, ldata)
-    rhosnowtotal = zeros(Float64, ldata)
+    rhosnow_total = zeros(Float64, ldata)
     # Intermediate                                                                        
     zm = zeros(Float64, nlayer)
     ks = zeros(Float64, nlayer)
@@ -96,15 +89,13 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
         end
 
      rnplus = (1. - albedo[i]) * rsd[i] + ems*rld[i]
-#    rnplus = rsd[i] - rsu[i] + ems*rld[i]
+     # rnplus = rsd[i] - rsu[i] + ems*rld[i] # bypasses the need of the albedo model
                  
      # Solve surface energy balance 
         (eflux[i], leflux[i], hflux[i], teco[i], gflux[i], ustar[i]) = surfaceEB(
             ta[i], rh[i], ws[i], press[i], rnplus, zobs,
             d, z0, zt, beta, tg[1], keco, zm[1], ems, flag_Mf
         )
-
-       # if swe == swemin gflux[i] = 0. end
  
      # Soil scheme for i>1. i=1 is the boundary condition (ie, t=0)
         if i > 1           
@@ -126,9 +117,6 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
             crho[1] = cice * rhosnow + (1. - rhosnow/rhoice) * cair * rhoair
             crho[2:end] .= crhosoil
 
-            # ks[2] = 0.1 #*ksoil
-            # crho[2] = 1.0*crhosoil
-
             # Specific heat times density for each layer
             for k = 2:nlayer
                 if tg[k]<0. && tg[k]>-1.
@@ -137,8 +125,8 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
             end
             
             # It would be more appropriate to provide teco rather than gflux here.
-            # The fixed boundary condition is more stable than the flux boundary condition.
-            # Solve for snow&soil temperature without considering snowmelt
+            # A boundary condition of status is more stable than using a flux boundary condition.
+            # Solve for snow & soil temperatures without considering snowmelt first
             tg, = solvesoilkeco!(dzm, tg, teco[i], tgb, dt, crho, ks, keco, gflux[i], gflux[i-1])
 
             # Calculate snowmelt Mf
@@ -152,7 +140,7 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
             k0 = (1/ksnow*dzm[1]/2+1/ksoil[1]*dzm[2]/2)^(-1)*dzb[2]
             gflux0[i] = k0*(tg[1]-tg[2])/dzb[2]
 
-            Mf[i] = dTpos * swe * cice / lfusion / dt # It is Mf devided by rhowater (m s-1)
+            Mf[i] = dTpos * swe * cice / lfusion / dt # It is Mf in WRR paper devided by rhowater (m s-1)
             # Remind that "rhosnow * dsnow = rhowater * swe" in the snowmelt paper
 
             # Calculate the change in snow depth by fusion and sublimation
@@ -166,7 +154,7 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
 
              if dswe_fusion > 0.
                 flag_Mf = 1
-                swe = swe - dswe_fusion # max(dswe_fusion, dswe_et)
+                swe = swe - dswe_fusion
              else
                 flag_Mf = 0
                 swe = swe - dswe_et
@@ -185,18 +173,17 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
             if count_snow == Int64(24*3600/dt)
                 tgba = tgba / (24*3600/dt)
                 Dthermal = (1/ks[end-1] * dzm[end-1]/2 + 1/ks[end] * dzm[end]/2)^(-1) * dzb[end] / crho[end]
-#                Dthermal = Dthermal * 1/4 # apply smaller thermal conductivity for the bottom (US-Prr specific)
                 tgb = FRextended!(tgb, tgba, Dthermal, dzb[end],-1.)
                 count_snow = 0
                 tgba = 0.
             end
         end
 
-        tgtotal[i, :] = tg
-        swetotal[i, 1] = swe
-        dstotal[i, 1] = swe.*rhowater./rhosnow
+        tg_total[i, :] = tg
+        swe_total[i, 1] = swe
+        dsnow_total[i, 1] = swe.*rhowater./rhosnow
 
-        rhosnowtotal[i] = rhosnow
+        rhosnow_total[i] = rhosnow
 
         # rhosnow for the next time step
         rhosnow = rhosnow + rhosnow * swe/2.0 * rhowater * 9.8 /
@@ -204,7 +191,7 @@ function bulksurface(ta::Vector{Float64}, rh::Vector{Float64}, ws::Vector{Float6
     
     end
 
-    return hflux, leflux, gflux, gflux0, Mf, teco, tgtotal, swetotal, dstotal, albedo, rhosnowtotal, flag_snowmin, ustar
+    return hflux, leflux, gflux, gflux0, Mf, teco, tg_total, swe_total, dsnow_total, albedo, rhosnow_total, flag_snowmin, ustar
 end
 
 # Bulk surface energy balance scheme
