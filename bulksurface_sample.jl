@@ -42,7 +42,7 @@
  
  targetyear = 2013
   
- rhosnow_ini = 170. # kg/m8
+ rhosnow_ini = 170. # kg/m3
  ksoil_value = 0.8
  kmoss_value = 0.8
  dt = 30 * 60.
