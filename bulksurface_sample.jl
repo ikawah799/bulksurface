@@ -14,16 +14,16 @@
 # dsnow: snow depth (m)
 # albedo: albedo
 # rhosnow: density of snow (kg m-3)
-# flag_snowmin: flag to identify snow disapperance
+# flag_snowmin: flag to identify snow disappearance
 
 # Input
 # ta: air temperature (deg C)
 # rh: relative humidity (%)
 # ws: wind speed (m s-1)
-# press: atmospheric pressrue (kPa)
+# press: atmospheric pressure (kPa)
 # rsd: downward shortwave flux (W m-2)
 # rld: downward longwave flux (W m-2)
-# psnow: snow precipitation on the floor (m s-1 * time interval of input data)
+# psnow: snow precipitation on the floor (cm s-1 * time interval of input data)
 # zobs: observation height for wind speed and air temperature (m) *if these are different, use different zm in "surfaceEB"
 # d: displacement height (m)
 # z0: roughness length for momentum (m)
@@ -59,11 +59,11 @@
  zt_uaf = 4.42e-5
  beta_uaf = 0.22
 
-# Bulk ecosysytem surface conductivity
+# Bulk ecosystem surface conductivity
  keco =     [1.5, 3.0, 1.9, 0.9, 0.7, 0.37, 0.6, 0.9,  0.47,  2.7]
  keco_uaf = [1.8, 2.5, 1.9, 1.2, 1.0, 0.5 , 1.65,  8.2, 1.52, 8.0]
 
-# Snow disapperance date (SDD) based on albedo data
+# Snow disappearance date (SDD) based on albedo data
  SDD     = [119, 110, 133, 112, 110, 98, 118, 127, 100, 125]
  SDD_uaf = [113, 108, 131, 110, 105, 98, 115, 118,  93, 113]
 
