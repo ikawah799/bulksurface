@@ -221,7 +221,7 @@ end
 # ts     : surface temperature (degree C)
 # gflux  : below surface heat flux (W m-2)
 # deltaT : ts - ta (degree C)
-# count  : # of count required for interation 
+# count  : # of count required for iteration 
 # chu    : transfer velocity for sensible heat flux (m s-1)
 # q      : specific humidity (g kg-1)
 # ustar  : estimated ustar
@@ -320,7 +320,7 @@ function surfaceEB(ta::Float64, hm::Float64, ws::Float64, press::Float64,
     rho  =
         1.293 * 273.15 / (273.15 + ta) *
         (press * 10. / 1013.25) *
-        (1. - 0.378 * e / (press * 10.)) # air density  (about 1.2 kgm-3)  
+        (1. - 0.378 * e / (press * 10.)) # air density  (about 1.2 kg m-3)  
     cprho = cp * rho
     Tv = (ta + T0) * (1. + 0.61 * qa) # virtual temperature 
 
