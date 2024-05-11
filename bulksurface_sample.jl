@@ -1,5 +1,5 @@
 # This program calculates energy budgets for a snow-covered forest (US-Prr & US-Uaf)
-# according to the bulk surface approach
+# According to the bulk surface approach
 # Variables are explained in Ikawa et al (2024, Water Resources Research)
 
 # Output
